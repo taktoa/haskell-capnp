@@ -111,7 +111,7 @@ with rec {
             STYLISH_ERROR="$(stylish-haskell -i "$file" |& cat)"
             STYLISH_CODE="$?"
             set -e
-            if [[ "$STYLISH_CODE" != "0" ]]; then
+            if test "$STYLISH_CODE" != "0"; then
                 echo "[FAILURE] stylish-haskell failed on $file"
                 stylish-haskell -v -i "$file" |& sed 's/^/[FAILURE]     /g'
                 exit 1
@@ -141,12 +141,13 @@ with rec {
       doCheck = true;
 
       checkPhase = ''
+        mkdir "$out"
         hlint .
-        HLINT_ERROR="$?"
-        if [ "$HLINT_ERROR" = 0 ] ; then
+        HLINT_CODE="$?"
+        if test "$HLINT_CODE" = "0"; then
             echo "[SUCCESS] hlint report clean"
         else
-            echo "[ERROR] hlint has suggestions; please address"
+            echo "[FAILURE] hlint has suggestions; please address"
             exit 1
         fi
       '';
@@ -187,16 +188,20 @@ with rec {
         echo "[SUCCESS] nix/capnp.nix is up to date"
       '';
     });
+
+  addToolsToEnv = tools: pkg: pkg // {
+    env = pkg.env.overrideAttrs (old: {
+      buildInputs = (old.buildInputs or []) ++ tools;
+    });
+  };
 };
 
 {
-  capnp = addHydraHaddock hp hp.capnp;
+  capnp = (
+    addToolsToEnv [hp.stylish-haskell hp.hlint_2_0_5]
+    (addHydraHaddock hp hp.capnp));
 
-  capnpStylish = checkStylishHaskell {
-    src = hp.capnp.src;
-  };
-
-  capnpHLint = checkHLint { src = hp.capnp.src; };
-
-  capnpCabalNixSync = checkCabalNixSync { src = hp.capnp.src; };
+  capnpStylish      = checkStylishHaskell { inherit (hp.capnp) src; };
+  capnpHLint        = checkHLint          { inherit (hp.capnp) src; };
+  capnpCabalNixSync = checkCabalNixSync   { inherit (hp.capnp) src; };
 }

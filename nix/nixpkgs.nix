@@ -43,7 +43,7 @@ with rec {
     tarball = stage1-tarball;
   };
 
-  stage1 = import stage1-path { inherit system; };
+  stage1 = import stage1-path { config = {}; inherit system; };
 };
 
 stage1.fetchFromGitHub {

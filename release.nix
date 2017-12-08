@@ -1,4 +1,7 @@
-{ nixpkgs ? import ./nix/nixpkgs.nix, compiler ? "default" }:
+{ nixpkgs  ? import ./nix/nixpkgs.nix
+, compiler ? "default"
+, system   ? builtins.currentSystem
+}:
 
 with rec {
   pkgs = import nixpkgs {};
@@ -190,6 +193,8 @@ with rec {
 };
 
 {
+  quota = hp.quota;
+  
   capnp = addHydraHaddock hp hp.capnp;
 
   capnpStylish = checkStylishHaskell {

@@ -4,3 +4,5 @@
 /.cabal-sandbox
 /cabal.sandbox.config
 result*
+.agda-lib
+*.agdai

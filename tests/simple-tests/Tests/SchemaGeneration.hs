@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase                 #-}
 
 module Tests.SchemaGeneration
-    ( Schema (..), genSchema
+    ( Schema (..), genSchema, Field (..), FieldName (..), FieldType (..), StructName (..), BuiltIn (..)
     ) where
 
 import           Control.Monad   (replicateM)
@@ -33,8 +33,7 @@ data Field
     | StructDef StructName [Field]
 
 data BuiltIn
-    = Void
-    | Bool
+    = Bool
     | Int8
     | Int16
     | Int32
@@ -176,10 +175,12 @@ genStructDef depth = do
 
 
 -- Schema type
-genSchema :: QC.Gen Schema
-genSchema = do
+genSchemaDepth :: Int -> QC.Gen Schema
+genSchemaDepth i = do
     id1st <- QC.elements ['a'..'f']
     idrest <- QC.vectorOf 15 genSafeHexChar
     -- multiple structs make tests take too long
-    content <- runFieldGen (genStructDef 3)
+    content <- runFieldGen (genStructDef i)
     return $ Schema (id1st:idrest) [content]
+
+genSchema  = genSchemaDepth 3
